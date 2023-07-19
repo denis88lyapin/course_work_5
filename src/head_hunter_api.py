@@ -5,7 +5,7 @@ class HeadHunterAPI:
     """Класс для получения данных о работодателях и их вакансиях с сайта hh.ru."""
 
     def __init__(self) -> None:
-        self.employers_ids: list = [1178447, 1455]
+        self.employers_ids: list = [105904]
         self.url_employers = 'https://api.hh.ru/employers/'
         self.url_vacancies = 'https://api.hh.ru/vacancies'
         self.headers = {'User-Agent': '150014979'}
@@ -37,6 +37,7 @@ class HeadHunterAPI:
     def get_data_vacancies(self) -> list[dict]:
         '''Получить данные о вакансиях работодателей'''
         data = []
+        vacancies = None
         for employer_id in self.employers_ids:
             try:
                 page = 0
@@ -55,23 +56,53 @@ class HeadHunterAPI:
                         print(f"Данные о {data_tmp['items'][0]['employer']['name']} страница {page} получены.")
                         page += 1
                         pages = data_tmp['pages']
+
                     else:
                         print(f'Ошибка при получении вакансий. Код ошибки: {response.status_code}')
                         break
             except requests.exceptions.RequestException as e:
                 print(f"{e}")
-        return data
+            vacancies = self.__filter_vacancy(data)
+        return vacancies
 
+    @staticmethod
+    def __filter_vacancy(vacancy_data: list[dict]) -> list[dict]:
+        """Извлекает и конвертирует данные о вакансиях."""
+        vacancies = []
+        for vacancy in vacancy_data:
+            if vacancy['type']['id'] == 'open':
+                if vacancy['salary']:
+                    if vacancy['salary']['from']:
+                        salary = vacancy['salary']['from']
+                    elif vacancy['salary']['from']:
+                        salary = vacancy['salary']['from']
+                else:
+                    salary = 0
+                processed_vacancy = {
+                    "vacancy_id": vacancy["id"],
+                    "employer_id": vacancy['employer']["id"],
+                    "name": vacancy['name'],
+                    'area': vacancy['area']['name'],
+                    'title': vacancy['name'],
+                    'salary': salary,
+                    'url': vacancy['alternate_url'],
+                    'date_published': vacancy['created_at'],
+                    }
+                vacancies.append(processed_vacancy)
 
-if __name__ == '__main__':
-    a = HeadHunterAPI()
-    c = a.get_data_vacancies()
-    pprint(c)
-    # params = {
-    #     'employer_id': 78638,
-    #     'per_page': 100,
-    #     'page': 0}
-    # headers = {'User-Agent': '150014979'}
-    # response = requests.get(url='https://api.hh.ru/vacancies', params=params, headers=headers)
-    # d = response.json()
-    # pprint(d)
+        return vacancies
+
+# if __name__ == '__main__':
+#     a = HeadHunterAPI()
+#     c = a.get_data_vacancies()
+#     for i in c:
+#         print(i)
+#     # pprint(c)
+#     # params = {
+#     #     'employer_id': 78638,
+#     #     'per_page': 100,
+#     #     'page': 0}
+#     # headers = {'User-Agent': '150014979'}
+#     # response = requests.get(url='https://api.hh.ru/vacancies', params=params, headers=headers)
+#     # d = response.json()
+#     # pprint(d)
