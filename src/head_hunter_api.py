@@ -1,14 +1,13 @@
 import requests
-from pprint import pprint
-# [78638, 1740, 3529, 80660, 1122462, 1092837, 105904, 9501038, 1178447, 1455]
+
 class HeadHunterAPI:
     """Класс для получения данных о работодателях и их вакансиях с сайта hh.ru."""
 
     def __init__(self) -> None:
-        self.employers_ids: list = [105904]
-        self.url_employers = 'https://api.hh.ru/employers/'
-        self.url_vacancies = 'https://api.hh.ru/vacancies'
-        self.headers = {'User-Agent': '150014979'}
+        self.employers_ids: list[int] = [78638, 1740, 3529, 80660, 1122462, 1092837, 105904, 9501038, 1178447, 1455]
+        self.url_employers: str = 'https://api.hh.ru/employers/'
+        self.url_vacancies: str = 'https://api.hh.ru/vacancies'
+        self.headers: dict[str] = {'User-Agent': '150014979'}
 
     def get_data_company(self) -> list[dict]:
         '''Получить данные о работодателях'''
@@ -35,7 +34,7 @@ class HeadHunterAPI:
         return data
 
     def get_data_vacancies(self) -> list[dict]:
-        '''Получить данные о вакансиях работодателей'''
+        """Получить данные о вакансиях работодателей"""
         data = []
         vacancies = None
         for employer_id in self.employers_ids:
@@ -53,7 +52,7 @@ class HeadHunterAPI:
                     if response.status_code == 200:
                         data_tmp = response.json()
                         data.extend(data_tmp['items'])
-                        print(f"Данные о {data_tmp['items'][0]['employer']['name']} страница {page} получены.")
+                        print(f"Данные о вакансиях {data_tmp['items'][0]['employer']['name']} страница {page} получены.")
                         page += 1
                         pages = data_tmp['pages']
 
